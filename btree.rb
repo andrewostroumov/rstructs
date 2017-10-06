@@ -31,15 +31,10 @@ class BTree
 
     def lookup(value)
       return false if @values.empty?
-      index = @values.bsearch_index { |v| v > value}
-      return true if @values[(index || 0) - 1] == value
+      node, index = value_node(value)
+      return true if prev_value(index) == value
       return false if leaf?
-
-      if index
-        @nodes[index].lookup(value)
-      else
-        @nodes[-1].lookup(value)
-      end
+      node.lookup(value)
     end
 
     def insert(value)
@@ -53,7 +48,7 @@ class BTree
           end
         end
       else
-        child_node = value_node(value)
+        child_node, _ = value_node(value)
         child_node.insert(value)
       end
       value
@@ -141,7 +136,16 @@ class BTree
 
     def value_node(value)
       index = @values.bsearch_index { |v| v > value}
-      @nodes[index || -1]
+      node = @nodes[index || -1]
+      [node, index]
+    end
+
+    def prev_value(index)
+      if index
+        @values[index - 1]
+      else
+        @values[-1]
+      end
     end
   end
 end
